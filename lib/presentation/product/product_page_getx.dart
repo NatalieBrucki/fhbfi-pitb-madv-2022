@@ -3,6 +3,19 @@ import 'package:einkaufsliste/infrastructure/product_repository.dart';
 import 'package:flutter/material.dart';
 
 import 'product_tile.dart';
+import 'package:get/get.dart';
+
+class Controller extends GetxController{
+  final availableProducts = <Product>[].obs;
+  final selectedProducts = <Product>[].obs;
+
+  int get availableProductsCount => availableProducts.length;
+  int get selectedProductsCount => selectedProducts.length;
+
+  Product availableProductsIndex(index){
+    return availableProducts[index];
+  }
+}
 
 class ProductPage extends StatefulWidget {
   const ProductPage({super.key});
@@ -13,16 +26,15 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   final productRepository = ProductRepository();
-  List<Product> _availableProducts = [];
-  final List<Product> _selectedProducts = [];
+  final Controller c = Get.put(Controller());
 
   @override
   void initState() {
     super.initState();
 
     productRepository.findAll().then((products) => {
-          setState(() => {_availableProducts = products})
-        });
+      c.availableProducts.addAll(products)
+    });
   }
 
   @override
@@ -41,7 +53,7 @@ class _ProductPageState extends State<ProductPage> {
       onPressed: _onCartButtonPressed,
       child: Row(
         children: [
-          Text('  ${_selectedProducts.length} '),
+          Obx(() => Text("${c.selectedProducts.length}")),
           const Icon(Icons.shopping_basket)
         ],
       ),
@@ -49,30 +61,24 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   void _onCartButtonPressed() {
-    productRepository.findAll().then((products) => {
-      setState(
-            () {
-          _selectedProducts.clear();
-          _availableProducts = products;
-        },
-      )
-    });
+    for (var element in c.selectedProducts) {
+      c.availableProducts.add(element);
+    }
+    c.selectedProducts.clear();
   }
 
 
   Widget _buildProductList() {
     return ListView.builder(
         itemBuilder: (context, index) => ProductTile(
-              product: _availableProducts[index],
+              product: c.availableProductsIndex(index),
               onPressed: (product) => _onProductSelected(product),
             ),
-        itemCount: _availableProducts.length);
+        itemCount: c.availableProductsCount);
   }
 
   void _onProductSelected(Product product) {
-    setState(() {
-      _selectedProducts.add(product);
-      _availableProducts.remove(product);
-    });
+    c.selectedProducts.add(product);
+    c.availableProducts.remove(product);
   }
 }

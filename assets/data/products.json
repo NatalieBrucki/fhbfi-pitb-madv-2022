@@ -18,5 +18,9 @@
     {
         "name": "Jogurt",
         "categoryName": "Milchprodukte"
+    },
+    {
+        "name": "Milch",
+        "categoryName": "Milchprodukte"
     }
 ]
